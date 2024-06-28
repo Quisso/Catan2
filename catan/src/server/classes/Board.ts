@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable prefer-const */
 import { shuffleArray , Resource , Color , settlement } from "./catan_types"
 
 
@@ -10,7 +13,7 @@ type tile = {
 }
 type node = {
     settlement: settlement | null
-    harbor: Resource | Resource[] | null
+    harbor: Resource[] | null
     tiles: tile[]
     edges: edge[]
     index: number
@@ -19,10 +22,10 @@ type edge = {
     road: Color | null//player
     nodes: node[]
 }
-function production_conversion(prod: Hex | Resource ): Hex | Resource {
+function production_conversion(prod: Hex | Resource ): Hex | Resource | null {
     return Object.values(Hex).includes(prod as Hex) ? 
-        prod = prod as number as Resource: 
-        prod = prod as number as Hex
+        prod === Hex.desert ? null : prod as number as Resource : 
+        prod as number as Hex
 }  
 export class Board{
 
@@ -35,7 +38,7 @@ export class Board{
                (47)(48) 49 (50)(51) 52  53
     */
     
-    private tile_amt = 19
+    //private tile_amt = 19
     private tile_config: readonly { hex:Hex , amt:number }[] = [
         { hex:Hex.hills, amt:3 },
         { hex:Hex.forest, amt:4 },
@@ -45,27 +48,27 @@ export class Board{
         { hex:Hex.desert, amt:1 },
     ];
     private tile_layout: tile[];
-    private token_layout: number[];
+    //private token_layout: number[];
     private tile_rows = [3, 4, 5, 4, 3] 
     //robber: number;
 
     private node_amt = 54;
-    private edge_amt = 72;
+    //private edge_amt = 72;
     private game_state: {nodes: node[], edges: edge[]};
     private node_rows = [7, 9, 11, 11, 9, 7]
 
     harbor_amt = 18;
     all_resources:Resource[] = Object.values(Resource).map(r=> r as Resource)
-    private harbor_nodes:  Record<number, Resource | Resource[]> = {
+    private harbor_nodes:  Record<number, Resource[]> = {
         0: this.all_resources, 1: this.all_resources,
-        3: Resource.sheep, 4: Resource.sheep,
+        3: [Resource.sheep], 4: [Resource.sheep],
         7: this.all_resources, 14: this.all_resources,
         15: this.all_resources, 17: this.all_resources,
-        26: Resource.brick, 28: Resource.brick,
-        37: Resource.wood, 38: Resource.wood,
+        26: [Resource.brick], 28: [Resource.brick],
+        37: [Resource.wood], 38: [Resource.wood],
         45: this.all_resources, 46: this.all_resources,
-        47: Resource.wheat, 48: Resource.wheat,
-        50: Resource.ore, 51: Resource.ore,
+        47: [Resource.wheat], 48: [Resource.wheat],
+        50: [Resource.ore], 51: [Resource.ore],
     }
 
     public constructor() {
@@ -111,7 +114,8 @@ export class Board{
             t.nodes.forEach(n=>n.tiles.push(t))
         })
         
-        this.token_layout = this.init_tokens()
+        //this.token_layout = 
+        this.init_tokens()
     }
 
 /***********************************END OF CONSTRUCTOR*********************************************/

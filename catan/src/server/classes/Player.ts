@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable prefer-const */
 
-import { Resource } from "./catan_types";
+import { Resource , shuffleArray } from "./catan_types";
 
 
 // enum differentcards_developement { //25 cards = 14 Soldier + 6 Progress + 5 Victory
@@ -86,32 +89,32 @@ export class developement_Cards {
             }
         };
         
-        let swapdeck = (knight: card, progress1: card, progres2: card, progress3: card, victory: card) => {
-            let p1count = 0;
-            let p2count = 0;
-            let p3count = 0;
-            deck.forEach((number: number, index: number) => {
+        // let swapdeck = (knight: card, progress1: card, progres2: card, progress3: card, victory: card) => {
+        //     let p1count = 0;
+        //     let p2count = 0;
+        //     let p3count = 0;
+        //     deck.forEach((number: number, index: number) => {
 
-                if(number === 1){
-                    deck[index] = knight;
-                }else if(number === 2){
-                    //random progress card??
-                    //or only selective 3
-                    if(p1count !== 2){
-                        deck[index] = progress1;
-                        p1count++;
-                    }else if (p2count !== 2){   
-                        deck[index] = progres2;
-                        p2count++;
-                    }else if(p3count !== 2){
-                        deck[index] = progress3;
-                        p3count++;
-                    }
-                }else if(number === 3){
-                    deck[index] = victory;
-                }
-            });
-        };
+        //         if(number === 1){
+        //             deck[index] = knight;
+        //         }else if(number === 2){
+        //             //random progress card??
+        //             //or only selective 3
+        //             if(p1count !== 2){
+        //                 deck[index] = progress1;
+        //                 p1count++;
+        //             }else if (p2count !== 2){   
+        //                 deck[index] = progres2;
+        //                 p2count++;
+        //             }else if(p3count !== 2){
+        //                 deck[index] = progress3;
+        //                 p3count++;
+        //             }
+        //         }else if(number === 3){
+        //             deck[index] = victory;
+        //         }
+        //     });
+        // };
 
     }
 
@@ -120,7 +123,7 @@ export class developement_Cards {
         //randomizer of numbers that represent cards
         //push into the array
 
-        randomize(deck, deck.length);
+        shuffleArray(deck);
         for(let i = 0; i < nums; i++){
             this.cardsInHand_developement.push(deck[i]);
             deck.pop();
@@ -147,13 +150,15 @@ export class developement_Cards {
 }
 
 export class Player{
+    order: number
     resources: { [key in Resource]: number };
     settlement_count: number;
     roads_count: number;
     roads_location: number[];
 
 
-    constructor() { //if player are in these terrain add to resources
+    constructor(order:number) { //if player are in these terrain add to resources
+        this.order = order
         this.resources = {
             [Resource.brick]: 0,
             [Resource.wood]: 0,
@@ -181,8 +186,4 @@ export class Player{
     }
 
 
-}
-
-export function randomize(deck: number[], length: number) {
-    throw new Error("Function not implemented.");
 }
