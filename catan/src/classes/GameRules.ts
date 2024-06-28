@@ -20,7 +20,7 @@ export class GameRules{
         console.log(this.players)
     }
     roll_dice():number{
-        let die = (rand:number)=> Math.floor(rand * 6) + 1
+        const die = (rand:number)=> Math.floor(rand * 6) + 1
         return die(Math.random()) + die(Math.random())
     }
 
@@ -28,10 +28,7 @@ export class GameRules{
 
     }
 
-    // checkIntersection(tile:number[],tile_nodes:node[]): boolean{
-    //     let node:node;
-    //     return tile.some(e => tile_nodes[e].settlement !== null)
-    // }
+    
     // check_Empty_Intersection(tile:number[],tile_nodes:node[]): boolean{
     //     let node:node;
     //     return tile.some(e => tile_nodes[e].settlement === null)

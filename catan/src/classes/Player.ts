@@ -1,5 +1,5 @@
 
-import { Resource } from "./catan_types";
+import { Resource,node } from "./catan_types";
 
 
 // enum differentcards_developement { //25 cards = 14 Soldier + 6 Progress + 5 Victory
@@ -149,8 +149,10 @@ export class developement_Cards {
 export class Player{
     resources: { [key in Resource]: number };
     settlement_count: number;
+    settlement_location: number[]
     roads_count: number;
     roads_location: number[];
+
 
 
     constructor() { //if player are in these terrain add to resources
@@ -165,6 +167,8 @@ export class Player{
         this.settlement_count = 0;
         this.roads_count = 0;
         this.roads_location = [];
+        this.settlement_location = []
+        
     
     }
 
@@ -178,6 +182,17 @@ export class Player{
 
     roadscounter(){ 
         this.roads_count++;
+    }
+
+    checkRoads(node:node){
+        const playerRoads = node.edges.filter((edge:node) => edge.road === this);
+        return playerRoads.length >= 2 || playerRoads.length > 0;
+    }
+
+    checkSettlement(node:node){
+        const playerRoads = node.edges.filter((edge:node) => edge.road === this);
+        const playerSettlementOrCity = node.settlement != null && node.settlement.player === this;
+        return (playerRoads.length >= 2 || playerSettlementOrCity) 
     }
 
 

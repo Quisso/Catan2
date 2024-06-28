@@ -1,18 +1,19 @@
 export enum Tile { hills , forest , mountain , fields , pasture , desert };
 export enum Resource { brick , wood , ore , wheat , sheep };
 export enum Color { red , white , orange , blue};
+import { Player } from "./Player"
 
 export type settlement = {
-    color: Color
+    player: Player
     is_city: boolean
 }
-export type node = {
-    resources: Resource[]
-    edges: edge[]
-    settlement: settlement
-}
+//export type node = {
+  //  resources: Resource[]
+   // edges: edge[]
+   // settlement: settlement
+//}
 export type edge = {
-    road: Color
+    road: Player | null
     nodes: node[]
 }
 export function shuffleArray<T>(arr:T[]):T[]{

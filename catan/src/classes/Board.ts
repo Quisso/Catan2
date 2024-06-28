@@ -1,4 +1,5 @@
-import { shuffleArray , Resource , Color , settlement } from "./catan_types"
+import { Player } from "./Player"
+import { shuffleArray , Resource , settlement } from "./catan_types"
 
 
 enum Hex { hills , forest , mountain , fields , pasture , desert }
@@ -16,9 +17,10 @@ type node = {
     index: number
 }
 type edge = {
-    road: Color | null//player
+    road: Player | null//player
     nodes: node[]
 }
+
 function production_conversion(prod: Hex | Resource ): Hex | Resource {
     return Object.values(Hex).includes(prod as Hex) ? 
         prod = prod as number as Resource: 
@@ -34,7 +36,7 @@ export class Board{
            (38) 39  40  41  42  43  44 (45)(46)
                (47)(48) 49 (50)(51) 52  53
     */
-    
+    nodes: node[] = []
     private tile_amt = 19
     private tile_config: readonly { hex:Hex , amt:number }[] = [
         { hex:Hex.hills, amt:3 },
@@ -71,7 +73,7 @@ export class Board{
     public constructor() {
         
         //tile_layout population
-        let resource_list:Hex[] = 
+        const resource_list:Hex[] = 
             shuffleArray(this.tile_config.map(c=>Array(c.amt).fill(c.hex)).flat())
         this.tile_layout = Array.from(resource_list)
         .map(t=>{
@@ -125,6 +127,83 @@ export class Board{
             .map(n=>n.settlement as Exclude<node["settlement"], null>)
         ).flat()
     }
+    public getRoadsfromToken(token: number):edge[] {
+        return this.tile_layout
+        .filter(t=>t.token === token)
+        .map(t=>
+            t.nodes
+            .filter(n=>n !== null)
+            .flatMap(n=> n.edges )
+        ).flat()
+    }
+// build functions 
+    public buildSettlement(tile:number,player:Player):void{
+        const nodeI = this.getTileNodes(tile);
+
+        const vaildNode = nodeI.map(index => this.getNodeByIndex(index))
+        .filter(node => player.checkRoads(node));
+
+
+        vaildNode.forEach(node => {
+            if(node.settlement === null){
+                node.settlement = {
+                    player:player,
+                    is_city:false
+                }
+               player.settlement_count++;
+               player.settlement_location.push(node.index);
+            }
+
+        });        
+        
+
+    }
+
+    public buildRoad(tile:number,player:Player):void{
+        const nodeI = this.getTileNodes(tile);
+
+        const vaildNode = nodeI.map(index => this.getNodeByIndex(index))
+        .filter(node => player.checkSettlement(node))
+
+        if(vaildNode.length === 0){
+            console.log("NO VAIID PATH AVAILABLE")
+        }
+
+        const vaildPath = vaildNode[0];
+        this.buildRoadAtNode(vaildPath,player);
+
+    }
+// Its a private method used to build next to an open road node
+    private buildRoadAtNode(node:node, player:Player):void{
+        const edgeWithRoad = node.edges.find(edge => edge.road !== null);
+
+        if(edgeWithRoad){
+            console.log("A road already exist on this path");
+            return;
+        }
+
+        const newRoad = player
+
+        node.edges.forEach(edge => {
+            if(edge.road === null){
+                edge.road = newRoad
+                player.roads_count++;
+                player.roads_location.push(node.index)
+            }
+        });
+            console.log("road built");
+    }
+   
+//////////////////////////////////////////////////////////////////////////////////////////////////
+    public checkIntersection(tile:number): boolean{
+        const settlement = this.getSettlementsfromToken(tile)
+         return settlement != null 
+    }
+    // Get's the nodes index 
+    getNodeByIndex(index: number) {
+        return this.nodes[index];
+    } 
+
     public getAdjacentTiles(tile: tile):tile[] {
         return tile.nodes
         .map(n=>n.tiles)
@@ -147,13 +226,13 @@ export class Board{
             t.token = token_layout[i]
         })
         //unrandomize (6 and 8 rule)
-        let breaksRule = (t:tile)=>{
-            let has6or8 = (x:tile):boolean=>x.token == 6 || x.token == 8
+        const breaksRule = (t:tile)=>{
+            const has6or8 = (x:tile):boolean=>x.token == 6 || x.token == 8
             return has6or8(t) && this.getAdjacentTiles(t).some(adjt=>has6or8(adjt))
         }
-        let fixRule = (rule_break_tile:tile)=>{ 
-            let rule_tile = (this.tile_layout.filter(t=>!breaksRule(t)))[0]
-            let temp = rule_break_tile.token
+        const fixRule = (rule_break_tile:tile)=>{ 
+            const rule_tile = (this.tile_layout.filter(t=>!breaksRule(t)))[0]
+            const temp = rule_break_tile.token
             rule_break_tile.token = rule_tile.token
             rule_tile.token = temp
         }
@@ -163,7 +242,7 @@ export class Board{
     private makeEdge(n1:node, n2:node):edge|null{
         if(n1.edges.some(e=>e.nodes.find(v=>v===n2)!== undefined)) return null
         if(n1.edges.length > 2 || n2.edges.length > 2) throw console.error("too many edges");
-        let edge:edge = {
+        const edge:edge = {
             road: null,
             nodes: [n1, n2],
         }
@@ -181,7 +260,7 @@ export class Board{
     }
     private getCol(index:number, row_amts:number[]):number{
         if(index<0) return -1
-        for(let row of row_amts){
+        for(const row of row_amts){
             if(index < row) return index
             index-=row
         }
@@ -197,12 +276,12 @@ export class Board{
         }, 0)
     }
     private getTileNodes(tIndex:number): number[]{
-        let nIndex:number[] = []
-        let row = this.getRow(tIndex, this.tile_rows)
-        let col = this.getCol(tIndex, this.tile_rows)*2
+        const nIndex:number[] = []
+        const row = this.getRow(tIndex, this.tile_rows)
+        const col = this.getCol(tIndex, this.tile_rows)*2
 
-        let topRowOffset = row>Math.floor(this.tile_rows.length/2) ? 1:0
-        let bottomRowOffset = row<Math.floor(this.tile_rows.length/2) ? 1:0
+        const topRowOffset = row>Math.floor(this.tile_rows.length/2) ? 1:0
+        const bottomRowOffset = row<Math.floor(this.tile_rows.length/2) ? 1:0
         
         for(let c = col; c<col+3; c++){
             nIndex.push(this.getIndex(row, c+topRowOffset, this.node_rows))
