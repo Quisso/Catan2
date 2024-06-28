@@ -1,32 +1,17 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable prefer-const */
 
-import { Resource } from "./catan_types";
-
-
-// enum differentcards_developement { //25 cards = 14 Soldier + 6 Progress + 5 Victory
-//     Soldier, Progress, Victory
-// }
-
-
-// function getrandomcards(){
-//     //randomizer 
-
-//     switch (differentcards_developement){   
-//         case :
-
-//         case ://card name 
-//         //function card
-//         case : 
-//     }
-// } 
+import { Resource, shuffleArray } from "./catan_types";
 
 //card effect
 type card = {
     name:string;
     description: string;
-    function: () => void;
+    function: (...args: any) => any;
 }
 
-let deck: any = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,3,3,3,3,3]; // 1 = knight, 2 = progress, 3 = victory
+// 1 = knight, 2 = progress, 3 = victory
 
 export class developement_Cards {
     cardsInHand_developement: card[];
@@ -35,20 +20,23 @@ export class developement_Cards {
     progress2: card;
     progress3: card;
     victory: card;
+    deck: card[];
+    board: any;
+    player: Player;
 
-    constructor() {
+    constructor(player: Player) {
         this.cardsInHand_developement = [];
         this.knight = {
             name: "knight card",
-            description: "",
-            function: () =>{
-                
+            description: "Move the thief to a chosen location",
+            function: (num: number) =>{
+                return this.board.movethieflocation(num);
             }
         };
 
         this.progress1 = {
             name: "Road building card",
-            description: "",
+            description: "Build 2 road at any location of player's choosing",
             function: () =>{
                 
             }
@@ -70,60 +58,37 @@ export class developement_Cards {
             }
         };
 
+        this.player = player;
         this.victory = {
             name: "victory card",
-            description: "",
+            description: "when called give player one point",
             function: () =>{
-                
-            }
-        };
-
-        this.knight = {
-            name: "knight",
-            description: "",
-            function: () =>{
-                
+                this.player.victory_pts++;
             }
         };
         
-        let swapdeck = (knight: card, progress1: card, progres2: card, progress3: card, victory: card) => {
-            let p1count = 0;
-            let p2count = 0;
-            let p3count = 0;
-            deck.forEach((number: number, index: number) => {
-
-                if(number === 1){
-                    deck[index] = knight;
-                }else if(number === 2){
-                    //random progress card??
-                    //or only selective 3
-                    if(p1count !== 2){
-                        deck[index] = progress1;
-                        p1count++;
-                    }else if (p2count !== 2){   
-                        deck[index] = progres2;
-                        p2count++;
-                    }else if(p3count !== 2){
-                        deck[index] = progress3;
-                        p3count++;
-                    }
-                }else if(number === 3){
-                    deck[index] = victory;
-                }
-            });
-        };
-
+        this.deck = [
+            this.knight, this.knight, this.knight, this.knight, this.knight,
+            this.knight, this.knight, this.knight, this.knight, this.knight,
+            this.knight, this.knight, this.knight, this.knight,
+            this.progress1, this.progress1, 
+            this.progress2, this.progress2, 
+            this.progress3, this.progress3,
+            this.victory, this.victory, this.victory, this.victory, this.victory
+        ];
+        
     }
+
 
     Drawhand_developement(nums: number) {
         //num = number of cards we draw
         //randomizer of numbers that represent cards
         //push into the array
 
-        randomize(deck, deck.length);
+        shuffleArray(this.deck);
         for(let i = 0; i < nums; i++){
-            this.cardsInHand_developement.push(deck[i]);
-            deck.pop();
+            this.cardsInHand_developement.push(this.deck[i]);
+            this.deck.pop();
         }
     }
 
@@ -135,11 +100,9 @@ export class developement_Cards {
         return false;
     }
 
-    //usecard (arr: number[], index: number){
+    usecard(){
         
-    // }
-
-
+    }
 
     getCards(): card[] {
         return this.cardsInHand_developement;
@@ -151,7 +114,8 @@ export class Player{
     settlement_count: number;
     roads_count: number;
     roads_location: number[];
-
+    victory_pts: number;
+    developmentCards: developement_Cards;
 
     constructor() { //if player are in these terrain add to resources
         this.resources = {
@@ -165,7 +129,28 @@ export class Player{
         this.settlement_count = 0;
         this.roads_count = 0;
         this.roads_location = [];
+        this.victory_pts = 0;
+        this.developmentCards = new developement_Cards(this);
     
+    }
+
+    upgrade(){
+
+    }
+
+    buy_settlement(amount_settlement: number){
+
+    }
+
+    buy_road(amount_road: number){
+    
+    }
+
+    buy_card(amount_card: number){
+        
+        //check if we got the resource if we do buy / draw
+        //if not throw error
+
     }
 
     increment_resource(num: number, territorytype: Resource){
@@ -183,6 +168,4 @@ export class Player{
 
 }
 
-export function randomize(deck: number[], length: number) {
-    throw new Error("Function not implemented.");
-}
+

@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 import { shuffleArray , Resource , Color , settlement } from "./catan_types"
 
 
@@ -47,7 +48,9 @@ export class Board{
     private tile_layout: tile[];
     private token_layout: number[];
     private tile_rows = [3, 4, 5, 4, 3] 
+    
     //robber: number;
+    private thiefPosition: number;
 
     private node_amt = 54;
     private edge_amt = 72;
@@ -67,6 +70,8 @@ export class Board{
         47: Resource.wheat, 48: Resource.wheat,
         50: Resource.ore, 51: Resource.ore,
     }
+    
+    
 
     public constructor() {
         
@@ -112,10 +117,21 @@ export class Board{
         })
         
         this.token_layout = this.init_tokens()
+
+
+        this.thiefPosition = this.tile_layout.findIndex(t => t.hex === Hex.desert);
     }
 
 /***********************************END OF CONSTRUCTOR*********************************************/
-    
+
+    public movethieflocation(token: number){
+        if(token > 0 && token < this.tile_layout.length){
+            this.thiefPosition = token;
+        }else{
+            throw new Error ("out of bound token (move thief)")
+        }
+    }
+
     public getSettlementsfromToken(token: number):settlement[] {
         return this.tile_layout
         .filter(t=>t.token === token)
@@ -214,3 +230,5 @@ export class Board{
     }
     
 }
+
+export default Board;
