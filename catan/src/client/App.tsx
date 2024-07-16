@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { StartInterface } from './Join'
+import { StartInterface , DiceRoll , IDInterface} from './Join'
 import reactLogo from '../assets/react.svg'
 import viteLogo from '/vite.svg'
 import './style/App.css'
@@ -31,6 +31,12 @@ function App() {
       </p>
       <div>
         <StartInterface/>
+      </div>
+      <div>
+        <DiceRoll/>
+      </div>
+      <div>
+        <IDInterface/>
       </div>
     </>
   )

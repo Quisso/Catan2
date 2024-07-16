@@ -150,15 +150,17 @@ export class developement_Cards {
 }
 
 export class Player{
-    order: number
-    resources: { [key in Resource]: number };
-    settlement_count: number;
-    roads_count: number;
-    roads_location: number[];
+
+    private order: number
+    private resources: { [key in Resource]: number };
+    private settlement_count: number;
+    private roads_count: number;
+    private roads_location: number[];
+    private vic_pnt: number
 
 
-    constructor(order:number) { //if player are in these terrain add to resources
-        this.order = order
+    constructor() { //if player are in these terrain add to resources
+        this.order = 0
         this.resources = {
             [Resource.brick]: 0,
             [Resource.wood]: 0,
@@ -170,20 +172,38 @@ export class Player{
         this.settlement_count = 0;
         this.roads_count = 0;
         this.roads_location = [];
-    
+        this.vic_pnt = 0;
     }
 
-    increment_resource(num: number, territorytype: Resource){
-        this.resources[territorytype] += num;
+    set_order(order:number){
+        this.order = order
+    }
+
+    increment_resource(territorytype: Resource){
+        this.resources[territorytype]++;
+    }
+    decrement_resource(territorytype: Resource){
+        this.resources[territorytype]--;
     }
 
     getResources_types(resourceType: Resource){ //see resource amounts
         return this.resources[resourceType];
     }
 
-    roadscounter(){ 
+    roads_counter(){ 
         this.roads_count++;
     }
-
+    increment_victorypoint(){
+        this.vic_pnt++
+    }
+    decrement_victorypoint(){
+        this.vic_pnt++
+    }
+    
+    
+    roll_dice():number{
+        let die = (rand:number)=> Math.floor(rand * 6) + 1
+        return die(Math.random()) + die(Math.random())
+    }
 
 }
