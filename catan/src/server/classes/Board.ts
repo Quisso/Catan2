@@ -1,18 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable prefer-const */
-import { shuffleArray , Resource , Color , settlement , Building} from "./catan_types"
+import { shuffleArray , Hex , Resource , Color , Settlement , Building , Preset , ProductionConversion} from "./catan_types"
 
 
-enum Hex { hills , forest , mountain , fields , pasture , desert }
 type tile = {
     hex: Hex
-    resource: Resource
+    resource: Resource | null
     token: number
     nodes: node[]
 }
 type node = {
-    settlement: settlement | null
+    settlement: Settlement | null
     harbor: Resource | undefined | null
     tiles: tile[]
     edges: edge[]
@@ -21,16 +20,9 @@ type edge = {
     road: Color | null//player
     nodes: node[]
 }
-function production_conversion(prod: Hex | Resource ): Hex | Resource | null {
-    return Object.values(Hex).includes(prod as Hex) ? 
-        prod === Hex.desert ? null : prod as number as Resource : 
-        prod as number as Hex
-}  
-
-
 
 class Node_Tile_Init{
-    /*
+    /* Indicies
          0_______1
          /       \
         /         \
@@ -39,8 +31,23 @@ class Node_Tile_Init{
          \_______/
          4       5
     */
-    private tile_rows = [3, 4, 5, 4, 3] 
-    private node_rows = [7, 9, 11, 11, 9, 7]
+   
+    private tile_rows: number[]
+    private node_rows: number[]
+    constructor(height:number , width:number){
+        const tile_mid = Math.floor(height/2)
+        if(tile_mid%2 !== 0) throw Error("board height is not constructable (even board height)")
+        this.tile_rows = new Array(height).fill(0)
+        this.node_rows = new Array(height+1).fill(0)
+        for(let i = 0; i<tile_mid; i++){
+            const row = width-(tile_mid-i)
+            this.tile_rows[i] = row
+            this.tile_rows[height-1-i] = row
+
+            this.node_rows[i] = row*2+1
+            this.node_rows[height-i] = row*2+1
+        }
+    }
     private getRow(index:number, row_amts:number[]):number{
         if(index<0) return -1
         for(let i = 0; i < row_amts.length; i++){
@@ -66,6 +73,12 @@ class Node_Tile_Init{
             return acc
         }, 0)
     }
+    protected get_node_amt(){
+        return this.node_rows.reduce((acc, n)=>acc+n)
+    }
+    protected get_tile_amt(){
+        return this.tile_rows.reduce((acc, n)=>acc+n)
+    }
     protected get_nodes_from_tile(tIndex:number): number[]{
         let nIndex:number[] = []
         let row = this.getRow(tIndex, this.tile_rows)
@@ -82,7 +95,6 @@ class Node_Tile_Init{
         }
         return nIndex;
     }
-    
 }
 
 
@@ -97,7 +109,7 @@ export class Board extends Node_Tile_Init{
                (47)(48) 49 (50)(51) 52  53
     */
     
-    private tile_amt = 19
+    private tile_amt:number
     private tile_config: readonly { hex:Hex , amt:number }[] = [
         { hex:Hex.hills, amt:3 },
         { hex:Hex.forest, amt:4 },
@@ -109,26 +121,25 @@ export class Board extends Node_Tile_Init{
     private tile_layout: tile[];
     //robber: number;
 
-    private node_amt = 54;
-    //private edge_amt = 72;
+    private node_amt:number;
     private game_state: {nodes: node[], edges: edge[]};
 
-    private harbor_amt = 18;
-    private all_resources:Resource[] = Object.values(Resource).map(r=> r as Resource)
-    private harbor_nodes: Readonly<Map<number, Resource | undefined>> = new Map([
-        [0, undefined], [1, undefined],
+    private harbor_nodes: Readonly<Map<number, Resource | null>> = new Map([
+        [0, null], [1, null],
         [3, Resource.sheep], [4, Resource.sheep],
-        [7, undefined], [14, undefined],
-        [15, undefined], [17, undefined],
+        [7, null], [14, null],
+        [15, null], [17, null],
         [26, Resource.brick], [28, Resource.brick],
         [37, Resource.wood], [38, Resource.wood],
-        [45, undefined], [46, undefined],
+        [45, null], [46, null],
         [47, Resource.wheat], [48, Resource.wheat],
         [50, Resource.ore], [51, Resource.ore],
     ])
 
-    constructor() {
-        super()
+    constructor(preset?:Preset, ) {
+        super(5, 5)
+        this.node_amt = this.get_node_amt()
+        this.tile_amt = this.get_tile_amt()
 
         //token randomization
         let token_layout = shuffleArray(
@@ -145,9 +156,9 @@ export class Board extends Node_Tile_Init{
         .map(t=>{
             return {
                 hex: t,
-                resource: production_conversion(t),
+                resource: ProductionConversion.get(t),
                 token: t === Hex.desert ? 0 : token_layout,
-                nodes: [],
+                nodes: []
             } as tile
         })
         //this.tile_layout = shuffleArray(this.tile_layout) should i shuffle again?
@@ -186,7 +197,7 @@ export class Board extends Node_Tile_Init{
 
 /***********************************END OF CONSTRUCTOR*********************************************/
     
-    public getSettlementsfromToken(token: number):settlement[] {
+    public getSettlementsfromToken(token: number):Settlement[] {
         return this.tile_layout
         .filter(t=>t.token === token)
         .map(t=>
@@ -231,3 +242,45 @@ export class Board extends Node_Tile_Init{
     }
     
 }
+
+import fs from "fs"
+
+async function savePreset(preset:Preset) {
+    try {
+        await fs.writeFile('./'+preset.name+'.json', JSON.stringify(preset), 
+            err => {
+                // Checking for errors 
+                if (err) throw err;
+        
+                // Success 
+                console.log("Done writing");
+            });
+    } catch (err) {
+        console.log(err);
+    }
+}
+savePreset({
+    name: "Base",
+    height: 5,
+    width: 5, 
+    tile_config: [
+        { amt:3, hex:Hex.hills },
+        { amt:4, hex:Hex.forest },
+        { amt:3, hex:Hex.mountain },
+        { amt:4, hex:Hex.fields },
+        { amt:4, hex:Hex.pasture },
+        { amt:1, hex:Hex.desert },
+    ],
+    tokens: [2,3,3,4,4,5,5,6,6,8,8,9,9,10,10,11,11,12],
+    harbors: [
+        {index:0, resource:null}, {index:1, resource:null},
+        {index:3, resource:Resource.sheep}, {index:4, resource:Resource.sheep},
+        {index:7, resource:null}, {index:14, resource:null},
+        {index:15, resource:null}, {index:17, resource:null},
+        {index:26, resource:Resource.brick}, {index:28, resource:Resource.brick},
+        {index:37, resource:Resource.wood}, {index:38, resource:Resource.wood},
+        {index:45, resource:null}, {index:46, resource:null},
+        {index:47, resource:Resource.wheat}, {index:48, resource:Resource.wheat},
+        {index:50, resource:Resource.ore}, {index:51, resource:Resource.ore},
+    ]
+} as Preset)
