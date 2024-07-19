@@ -11,9 +11,9 @@ export interface Preset {
     name:string
     width:number
     height:number
-    tile_config: { amt:number, hex:string}[]
+    tile_config: Record<string, number>
     tokens: number[]
-    harbors: { index:number , resource:string | null }[]
+    harbors: Record<number, string | null>
 }
 export function shuffleArray<T>(arr:T[]):T[]{
     return arr.map(a=>({val:a , sort:Math.random()}))

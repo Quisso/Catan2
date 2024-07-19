@@ -1,1 +1,53 @@
-{"name":"Base","height":5,"width":5,"tile_config":[{"amt":3,"hex":"hills"},{"amt":4,"hex":"forest"},{"amt":3,"hex":"mountain"},{"amt":4,"hex":"fields"},{"amt":4,"hex":"pasture"},{"amt":1,"hex":"desert"}],"tokens":[2,3,3,4,4,5,5,6,6,8,8,9,9,10,10,11,11,12],"harbors":[{"index":0,"resource":null},{"index":1,"resource":null},{"index":3,"resource":"sheep"},{"index":4,"resource":"sheep"},{"index":7,"resource":null},{"index":14,"resource":null},{"index":15,"resource":null},{"index":17,"resource":null},{"index":26,"resource":"brick"},{"index":28,"resource":"brick"},{"index":37,"resource":"wood"},{"index":38,"resource":"wood"},{"index":45,"resource":null},{"index":46,"resource":null},{"index":47,"resource":"wheat"},{"index":48,"resource":"wheat"},{"index":50,"resource":"ore"},{"index":51,"resource":"ore"}]}
+{
+    "name": "Base",
+    "height": 5,
+    "width": 5,
+    "tile_config": {
+        "hills": 3,
+        "forest": 4,
+        "mountain": 3,
+        "fields": 4,
+        "pasture": 4,
+        "desert": 1
+    },
+    "tokens": [
+        2,
+        3,
+        3,
+        4,
+        4,
+        5,
+        5,
+        6,
+        6,
+        8,
+        8,
+        9,
+        9,
+        10,
+        10,
+        11,
+        11,
+        12
+    ],
+    "harbors": {
+        "0": null,
+        "1": null,
+        "3": "sheep",
+        "4": "sheep",
+        "7": null,
+        "14": null,
+        "15": null,
+        "17": null,
+        "26": "brick",
+        "28": "brick",
+        "37": "wood",
+        "38": "wood",
+        "45": null,
+        "46": null,
+        "47": "wheat",
+        "48": "wheat",
+        "50": "ore",
+        "51": "ore"
+    }
+}

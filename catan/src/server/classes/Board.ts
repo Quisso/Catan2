@@ -31,6 +31,8 @@ class Node_Tile_Init{
          \_______/
          4       5
     */
+    protected node_amt:number;
+    protected tile_amt:number
    
     private tile_rows: number[]
     private node_rows: number[]
@@ -47,6 +49,10 @@ class Node_Tile_Init{
             this.node_rows[i] = row*2+1
             this.node_rows[height-i] = row*2+1
         }
+
+        this.node_amt = this.node_rows.reduce((acc, n)=>acc+n)
+        this.tile_amt = this.tile_rows.reduce((acc, n)=>acc+n)
+
     }
     private getRow(index:number, row_amts:number[]):number{
         if(index<0) return -1
@@ -72,12 +78,6 @@ class Node_Tile_Init{
             row--
             return acc
         }, 0)
-    }
-    protected get_node_amt(){
-        return this.node_rows.reduce((acc, n)=>acc+n)
-    }
-    protected get_tile_amt(){
-        return this.tile_rows.reduce((acc, n)=>acc+n)
     }
     protected get_nodes_from_tile(tIndex:number): number[]{
         let nIndex:number[] = []
@@ -109,19 +109,10 @@ export class Board extends Node_Tile_Init{
                (47)(48) 49 (50)(51) 52  53
     */
     
-    private tile_amt:number
-    private tile_config: readonly { hex:Hex , amt:number }[] = [
-        { hex:Hex.hills, amt:3 },
-        { hex:Hex.forest, amt:4 },
-        { hex:Hex.mountain, amt:3 },
-        { hex:Hex.fields, amt:4 },
-        { hex:Hex.pasture, amt:4 },
-        { hex:Hex.desert, amt:1 },
-    ];
+    private tile_config: { hex:Hex , amt:number }[]
     private tile_layout: tile[];
-    //robber: number;
+    private robber: number;
 
-    private node_amt:number;
     private game_state: {nodes: node[], edges: edge[]};
 
     private harbor_nodes: Readonly<Map<number, Resource | null>> = new Map([
@@ -136,10 +127,9 @@ export class Board extends Node_Tile_Init{
         [50, Resource.ore], [51, Resource.ore],
     ])
 
-    constructor(preset?:Preset, ) {
+    constructor(preset:Preset) {
         super(5, 5)
-        this.node_amt = this.get_node_amt()
-        this.tile_amt = this.get_tile_amt()
+        this.tile_config = preset.tile_config
 
         //token randomization
         let token_layout = shuffleArray(
@@ -164,7 +154,7 @@ export class Board extends Node_Tile_Init{
         //this.tile_layout = shuffleArray(this.tile_layout) should i shuffle again?
 
 
-
+        this.robber = this.tile_layout.findIndex(t=>t.hex === Hex.desert)
 
         //game state init
         this.game_state = {nodes: [], edges: []}
@@ -192,11 +182,25 @@ export class Board extends Node_Tile_Init{
             t.nodes.forEach(n=>n.tiles.push(t))
         })
         
-        this.fix_adjacent_6_and_8s()
+        //esures no 6's or 8's are next to each other on the board
+        let is6or8 = (x:tile):boolean=>x.token == 6 || x.token == 8
+        let adj6or8 = (t:tile):boolean=>this.getAdjacentTiles(t).some(adjt=>is6or8(adjt))
+        let fixRule = (rule_break_tile:tile)=>{ 
+            let rule_tile = shuffleArray(this.tile_layout.filter(t=>!is6or8(t) && !adj6or8(t)))[0]
+            let temp = rule_break_tile.token
+            rule_break_tile.token = rule_tile.token
+            rule_tile.token = temp
+        }
+        this.tile_layout.forEach(t=>is6or8(t) && adj6or8(t) ? fixRule(t) :0)
     }
 
 /***********************************END OF CONSTRUCTOR*********************************************/
-    
+    public getRobber() {
+        return this.robber
+    }
+    public moveRobber(index:number) {
+        this.robber = index
+    }
     public getSettlementsfromToken(token: number):Settlement[] {
         return this.tile_layout
         .filter(t=>t.token === token)
@@ -263,24 +267,24 @@ savePreset({
     name: "Base",
     height: 5,
     width: 5, 
-    tile_config: [
-        { amt:3, hex:Hex.hills },
-        { amt:4, hex:Hex.forest },
-        { amt:3, hex:Hex.mountain },
-        { amt:4, hex:Hex.fields },
-        { amt:4, hex:Hex.pasture },
-        { amt:1, hex:Hex.desert },
-    ],
+    tile_config: {
+        [Hex.hills]: 3,
+        [Hex.forest]: 4,
+        [Hex.mountain]: 3,
+        [Hex.fields]: 4,
+        [Hex.pasture]: 4,
+        [Hex.desert]: 1,
+    },
     tokens: [2,3,3,4,4,5,5,6,6,8,8,9,9,10,10,11,11,12],
-    harbors: [
-        {index:0, resource:null}, {index:1, resource:null},
-        {index:3, resource:Resource.sheep}, {index:4, resource:Resource.sheep},
-        {index:7, resource:null}, {index:14, resource:null},
-        {index:15, resource:null}, {index:17, resource:null},
-        {index:26, resource:Resource.brick}, {index:28, resource:Resource.brick},
-        {index:37, resource:Resource.wood}, {index:38, resource:Resource.wood},
-        {index:45, resource:null}, {index:46, resource:null},
-        {index:47, resource:Resource.wheat}, {index:48, resource:Resource.wheat},
-        {index:50, resource:Resource.ore}, {index:51, resource:Resource.ore},
-    ]
+    harbors: {
+        0: null, 1:null,
+        3:Resource.sheep, 4:Resource.sheep,
+        7:null, 14:null,
+        15:null, 17:null,
+        26:Resource.brick, 28:Resource.brick,
+        37:Resource.wood, 38:Resource.wood,
+        45:null, 46:null,
+        47:Resource.wheat, 48:Resource.wheat,
+        50:Resource.ore, 51:Resource.ore,
+    }
 } as Preset)
